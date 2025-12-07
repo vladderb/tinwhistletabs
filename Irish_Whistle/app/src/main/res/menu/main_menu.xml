@@ -2,13 +2,35 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/mainAction_addSong"
+        android:title="Add Song"
+        android:icon="@drawable/ic_music_note"
+        android:iconTint="@color/md_theme_onPrimary"
+        app:iconTint="@color/md_theme_onPrimary"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/mainAction_trash"
+        android:title="Trash"
+        android:icon="@drawable/ic_trash"
+        android:iconTint="@color/md_theme_onPrimary"
+        app:iconTint="@color/md_theme_onPrimary"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/mainAction_deleteAll"
+        android:title="Delete All Custom Songs"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/mainAction_about"
         android:title="@string/menu_about"
         android:icon="@drawable/ic_more"
+        android:iconTint="@color/md_theme_onPrimary"
+        app:iconTint="@color/md_theme_onPrimary"
         app:showAsAction="always" />
     <item android:id="@+id/mainAction_search"
         android:title="@string/menu_search_by_title"
         android:icon="@drawable/ic_search"
+        android:iconTint="@color/md_theme_onPrimary"
+        app:iconTint="@color/md_theme_onPrimary"
         app:showAsAction="always|collapseActionView"
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
 </menu>

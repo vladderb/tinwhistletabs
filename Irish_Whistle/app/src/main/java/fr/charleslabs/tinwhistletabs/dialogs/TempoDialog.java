@@ -48,6 +48,13 @@ public class TempoDialog extends DialogFragment {
                         MusicSettings.MIN_TEMPO, MusicSettings.MAX_TEMPO))
                 .setView(R.layout.dialog_tempo_layout)
                 .setCancelable(true)
+                .setNeutralButton(getText(R.string.dialog_reset), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        // Reset to default tempo
+                        caller.tempoChangeCallback(MusicSettings.DEFAULT_TEMPO, checkbox.isChecked());
+                    }
+                })
                 .setNegativeButton(getText(R.string.dialog_cancel), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {

@@ -10,6 +10,22 @@ Irish Whistle Tabs is an open-source tool to learn and improve your tin whistle 
 
 This repo contains the Android Studio project and the database generator.
 
+## Build Requirements
+
+To build this project, you need:
+
+### Required Software
+- **JDK**: Java 17 or higher
+- **Android SDK**: API Level 34 (Android 14)
+
+### Build Configuration
+- **Gradle**: 8.13 (included via Gradle Wrapper)
+- **Android Gradle Plugin**: 8.13.1
+- **Compile SDK**: 34
+- **Min SDK**: 21 (Android 5.0 Lollipop)
+- **Target SDK**: 34 (Android 14)
+- **Java Version**: 17 (source and target compatibility)
+
 ## ToDo
 
 * Improve flute synth

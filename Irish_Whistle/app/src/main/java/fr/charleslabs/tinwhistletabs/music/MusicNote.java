@@ -68,7 +68,7 @@ public class MusicNote {
         }
     }
 
-    int getPitch() {
+    public int getPitch() {
         return pitch;
     }
 }

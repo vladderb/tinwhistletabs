@@ -1,39 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:padding="10dp">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="12dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginBottom="6dp"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="12dp"
+    app:strokeWidth="0dp"
+    android:clickable="false"
+    android:focusable="false"
+    app:rippleColor="?attr/colorPrimaryContainer">
 
-    <ImageView
-        android:id="@+id/mainActivity_sheetPicture"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        tools:background="#AAA"
-        android:contentDescription="@string/mainActivity_sheetPicturePlaceholder" />
-
-    <TextView
-        android:id="@+id/mainActivity_SheetName"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/black"
-        android:layout_marginLeft="10dp"
-        android:textStyle="bold"
-        tools:text="@string/mainActivity_sheetTitlePlaceholder"
-        android:layout_toRightOf="@+id/mainActivity_sheetPicture"
-        android:layout_alignTop="@+id/mainActivity_sheetPicture"
-        tools:ignore="RtlHardcoded" />
+        android:padding="16dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:descendantFocusability="blocksDescendants">
 
-    <TextView
-        android:id="@+id/mainActivity_SheetDetails"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/darker_gray"
-        android:layout_alignLeft="@+id/mainActivity_SheetName"
-        android:layout_below="@+id/mainActivity_SheetName"
-        android:maxLines="2"
-        android:ellipsize="end"
-        tools:text="@string/mainActivity_sheetDetailsPlaceholder"
-        />
-</RelativeLayout>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/mainActivity_sheetPictureCard"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageView
+                android:id="@+id/mainActivity_sheetPicture"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/mainActivity_sheetPicturePlaceholder"
+                tools:background="#AAA" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/mainActivity_SheetName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="@string/mainActivity_sheetTitlePlaceholder"
+            app:layout_constraintStart_toEndOf="@+id/mainActivity_sheetPictureCard"
+            app:layout_constraintEnd_toStartOf="@+id/mainActivity_btnDelete"
+            app:layout_constraintTop_toTopOf="@+id/mainActivity_sheetPictureCard" />
+
+        <TextView
+            android:id="@+id/mainActivity_SheetDetails"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="@string/mainActivity_sheetDetailsPlaceholder"
+            app:layout_constraintStart_toStartOf="@+id/mainActivity_SheetName"
+            app:layout_constraintEnd_toStartOf="@+id/mainActivity_btnDelete"
+            app:layout_constraintTop_toBottomOf="@+id/mainActivity_SheetName"
+            app:layout_constraintBottom_toBottomOf="@+id/mainActivity_sheetPictureCard" />
+
+        <ImageButton
+            android:id="@+id/mainActivity_btnDelete"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_delete"
+            android:contentDescription="Delete"
+            android:scaleType="centerInside"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

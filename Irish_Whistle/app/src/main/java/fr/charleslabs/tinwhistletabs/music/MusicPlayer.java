@@ -70,9 +70,22 @@ public class MusicPlayer {
             audioTrack.flush();
             audioTrack.release();
         }
+        
+        // Получаем минимальный размер буфера
+        int minBufferSize = AudioTrack.getMinBufferSize(
+                SAMPLE_RATE,
+                AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_16BIT);
+        
+        // Используем максимум из минимального размера и размера данных
+        int bufferSize = Math.max(minBufferSize, generatedSnd.length);
+        
+        android.util.Log.d("MusicPlayer", "Creating AudioTrack: dataSize=" + generatedSnd.length + 
+                ", minBufferSize=" + minBufferSize + ", bufferSize=" + bufferSize);
+        
         audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
                 SAMPLE_RATE, AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT, generatedSnd.length,
+                AudioFormat.ENCODING_PCM_16BIT, bufferSize,
                 AudioTrack.MODE_STATIC);
 
         // PRESET
@@ -83,7 +96,12 @@ public class MusicPlayer {
             audioTrack.setAuxEffectSendLevel(1.0f);
         }catch (Exception ignored){}
 
-        audioTrack.write(generatedSnd, 0, generatedSnd.length);
+        int written = audioTrack.write(generatedSnd, 0, generatedSnd.length);
+        android.util.Log.d("MusicPlayer", "Written " + written + " bytes to AudioTrack");
+        
+        if (written != generatedSnd.length) {
+            android.util.Log.w("MusicPlayer", "Warning: not all data written to AudioTrack");
+        }
     }
 
     public void play() {
@@ -91,7 +109,18 @@ public class MusicPlayer {
             public void run() {
                 handler.post(new Runnable() {
                     public void run() {
-                        if( audioTrack != null) audioTrack.play();
+                        if (audioTrack != null) {
+                            try {
+                                int state = audioTrack.getState();
+                                if (state == AudioTrack.STATE_INITIALIZED) {
+                                    audioTrack.play();
+                                } else {
+                                    android.util.Log.e("MusicPlayer", "AudioTrack not initialized, state: " + state);
+                                }
+                            } catch (Exception e) {
+                                android.util.Log.e("MusicPlayer", "Error playing audio", e);
+                            }
+                        }
                     }
                 });
             }
@@ -102,14 +131,11 @@ public class MusicPlayer {
     public void pause() {
         if (audioTrack != null){
             audioTrack.pause();
-            audioTrack.flush();
         }
     }
 
     public void stop() {
-        // @TODO Fade volume
         if (audioTrack != null)
-            //fadeOutAndStop();
             audioTrack.stop();
     }
 
@@ -145,31 +171,4 @@ public class MusicPlayer {
 
         return generatedSnd;
     }
-
-    /*float volume;
-    final private static int FADE_DURATION = 300; //The duration of the fade
-    final private static  int FADE_INTERVAL = 150; //The amount of time between volume changes.
-    private void fadeOutAndStop(){
-        volume = AudioTrack.getMaxVolume();
-        final float deltaVolume = volume / (float)(FADE_DURATION/FADE_INTERVAL);
-        final Timer timer = new Timer(true);
-
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                volume -= deltaVolume;
-                System.out.println(volume);
-                if (volume >= AudioTrack.getMinVolume())
-                    audioTrack.setStereoVolume(volume,volume);
-                //Cancel and Purge the Timer if the desired volume has been reached
-                else{
-                    timer.cancel();
-                    timer.purge();
-                    audioTrack.stop();
-                    audioTrack.setStereoVolume(1,1);
-                }
-            }
-        };
-        timer.schedule(timerTask,FADE_INTERVAL,FADE_INTERVAL);
-    }*/
 }

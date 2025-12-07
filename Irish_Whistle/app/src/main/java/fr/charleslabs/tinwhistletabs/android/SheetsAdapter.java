@@ -7,16 +7,21 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.charleslabs.tinwhistletabs.R;
+import fr.charleslabs.tinwhistletabs.music.CustomSongsManager;
 import fr.charleslabs.tinwhistletabs.music.MusicSheet;
+import fr.charleslabs.tinwhistletabs.music.TrashManager;
 
 public class SheetsAdapter extends BaseAdapter implements Filterable{
     private final List<MusicSheet> sheets;
@@ -59,6 +64,7 @@ public class SheetsAdapter extends BaseAdapter implements Filterable{
             viewHolder.sheetName = convertView.findViewById(R.id.mainActivity_SheetName);
             viewHolder.sheetDetails = convertView.findViewById(R.id.mainActivity_SheetDetails);
             viewHolder.sheetImage = convertView.findViewById(R.id.mainActivity_sheetPicture);
+            viewHolder.btnDelete = convertView.findViewById(R.id.mainActivity_btnDelete);
             convertView.setTag(viewHolder);
         }
 
@@ -103,6 +109,30 @@ public class SheetsAdapter extends BaseAdapter implements Filterable{
                 break;
         }
 
+        // Handle delete button - only show for custom songs
+        if (sheet.getFile().startsWith("custom_")) {
+            viewHolder.btnDelete.setVisibility(View.VISIBLE);
+            viewHolder.btnDelete.setFocusable(true);
+            viewHolder.btnDelete.setClickable(true);
+            viewHolder.btnDelete.setOnClickListener(v -> {
+                new AlertDialog.Builder(context)
+                        .setTitle("Переместить в корзину?")
+                        .setMessage("Трек \"" + sheet.getTitle() + "\" будет перемещен в корзину. Вы сможете восстановить его в течение 30 дней.")
+                        .setPositiveButton("В корзину", (dialog, which) -> {
+                            TrashManager.moveToTrash(context, sheet.getFile(), sheet.getTitle());
+                            sheetsFiltered.remove(position);
+                            sheets.remove(sheet);
+                            notifyDataSetChanged();
+                            Toast.makeText(context, "Перемещено в корзину", Toast.LENGTH_SHORT).show();
+                        })
+                        .setNegativeButton("Отмена", null)
+                        .show();
+            });
+        } else {
+            viewHolder.btnDelete.setVisibility(View.GONE);
+            viewHolder.btnDelete.setOnClickListener(null);
+        }
+
         //Return the view
         return convertView;
     }
@@ -125,12 +155,12 @@ public class SheetsAdapter extends BaseAdapter implements Filterable{
 
                     filterResults.count = resultsModel.size();
                     filterResults.values = resultsModel;
-                    //Log.d("filter","Found " + filterResults.count + " with " + constraint);
                 }
                 return filterResults;
             }
 
             @Override
+            @SuppressWarnings("unchecked")
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 sheetsFiltered = (List<MusicSheet>) results.values;
                 notifyDataSetChanged();
@@ -148,5 +178,6 @@ public class SheetsAdapter extends BaseAdapter implements Filterable{
         TextView sheetName;
         TextView sheetDetails;
         ImageView sheetImage;
+        ImageButton btnDelete;
     }
 }
