@@ -282,10 +282,7 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
             isPlaying = false;
             playPauseBtn.setImageDrawable(ContextCompat.getDrawable(this, android.R.drawable.ic_media_play));
             
-            // Stop metronome on pause
-            if (metronome != null && metronome.isPlaying()) {
-                metronome.stop();
-            }
+            // Metronome continues independently (not stopped on pause)
             
             // Disable auto-scroll in WebView
             if (sheetMusicView != null && isSheetMusicVisible) {
@@ -323,9 +320,11 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
         moveCursor(musicHandler, currentNoteIndex);
         MusicPlayer.getInstance().play();
         
-        // Start metronome if enabled
+        // Restart metronome if enabled to sync with music start
         if (isMetronomeEnabled && metronome != null) {
-            metronome.start(tempo);
+            metronome.stop();  // Stop first to resync
+            // Add small delay (50ms) to compensate for AudioTrack startup latency
+            metronome.start(tempo, 50);  // Start synchronized with music
         }
         
         // Enable auto-scroll in WebView
@@ -346,10 +345,7 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
         MusicPlayer.getInstance().stop();
         isPlaying = false;
         
-        // Stop metronome when music stops
-        if (metronome != null && metronome.isPlaying()) {
-            metronome.stop();
-        }
+        // Metronome continues independently (not stopped when music stops)
         
         // Reset highlighting in WebView and disable auto-scroll
         if (sheetMusicView != null && isSheetMusicVisible) {
@@ -375,8 +371,8 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
                     android.content.res.ColorStateList.valueOf(
                             ContextCompat.getColor(this, android.R.color.white)));
             
-            // Start metronome if music is playing
-            if (isPlaying && metronome != null) {
+            // Start metronome immediately (works independently of playback)
+            if (metronome != null) {
                 metronome.start(tempo);
             }
             

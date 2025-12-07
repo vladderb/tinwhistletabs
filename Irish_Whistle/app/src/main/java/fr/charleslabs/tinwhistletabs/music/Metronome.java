@@ -24,8 +24,18 @@ public class Metronome {
     
     /**
      * Start metronome at specified tempo
+     * @param tempo BPM (beats per minute)
      */
     public void start(int tempo) {
+        start(tempo, 0);
+    }
+    
+    /**
+     * Start metronome at specified tempo with initial delay
+     * @param tempo BPM (beats per minute)
+     * @param initialDelayMs delay before first click in milliseconds
+     */
+    public void start(int tempo, long initialDelayMs) {
         if (isPlaying) {
             stop();
         }
@@ -50,8 +60,12 @@ public class Metronome {
             }
         };
         
-        // Start immediately
-        handler.post(clickRunnable);
+        // Start with optional initial delay
+        if (initialDelayMs > 0) {
+            handler.postDelayed(clickRunnable, initialDelayMs);
+        } else {
+            handler.post(clickRunnable);
+        }
     }
     
     /**

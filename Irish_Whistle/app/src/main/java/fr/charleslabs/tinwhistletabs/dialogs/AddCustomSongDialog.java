@@ -82,7 +82,7 @@ public class AddCustomSongDialog extends DialogFragment {
             public void afterTextChanged(Editable s) {}
         });
         
-        // Auto-fill title from ABC notation
+        // Auto-fill title and type from ABC notation
         abcInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -92,14 +92,21 @@ public class AddCustomSongDialog extends DialogFragment {
             
             @Override
             public void afterTextChanged(Editable s) {
-                // Only auto-fill if title hasn't been manually edited
+                String abc = s.toString();
+                
+                // Only auto-fill title if it hasn't been manually edited
                 if (!titleManuallyEdited) {
-                    String abc = s.toString();
                     String extractedTitle = extractTitleFromABC(abc);
                     if (extractedTitle != null && !extractedTitle.isEmpty()) {
                         titleInput.setText(extractedTitle);
                         titleManuallyEdited = false; // Reset flag after auto-fill
                     }
+                }
+                
+                // Auto-fill type from R: header
+                String extractedType = extractTypeFromABC(abc);
+                if (extractedType != null && !extractedType.isEmpty()) {
+                    setSpinnerValue(typeSpinner, extractedType);
                 }
             }
         });
@@ -167,6 +174,55 @@ public class AddCustomSongDialog extends DialogFragment {
         return null;
     }
     
+    /**
+     * Extract type/rhythm from ABC notation (R: header)
+     */
+    private String extractTypeFromABC(String abc) {
+        if (abc == null || abc.isEmpty()) {
+            return null;
+        }
+        
+        // Look for R: header (rhythm/type)
+        Pattern pattern = Pattern.compile("^R:\\s*(.+)$", Pattern.MULTILINE);
+        Matcher matcher = pattern.matcher(abc);
+        
+        if (matcher.find()) {
+            String rhythm = matcher.group(1).trim().toLowerCase();
+            
+            // Map rhythm to our type names
+            if (rhythm.contains("reel")) return "Reel";
+            if (rhythm.contains("jig") && !rhythm.contains("slip")) return "Jig";
+            if (rhythm.contains("slip") && rhythm.contains("jig")) return "Slip Jig";
+            if (rhythm.contains("hornpipe")) return "Hornpipe";
+            if (rhythm.contains("polka")) return "Polka";
+            if (rhythm.contains("slide")) return "Slide";
+            if (rhythm.contains("waltz")) return "Waltz";
+            if (rhythm.contains("march")) return "March";
+            if (rhythm.contains("song")) return "Song";
+            
+            return "Misc.";
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Set spinner value by matching string
+     */
+    private void setSpinnerValue(Spinner spinner, String value) {
+        if (value == null || spinner == null) {
+            return;
+        }
+        
+        ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinner.getAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).equalsIgnoreCase(value)) {
+                spinner.setSelection(i);
+                return;
+            }
+        }
+    }
+    
     private boolean validateAndParse(String title, String author, String type, String abc) {
         if (title.isEmpty()) {
             Toast.makeText(getContext(), "Please enter a title", Toast.LENGTH_SHORT).show();
@@ -203,6 +259,57 @@ public class AddCustomSongDialog extends DialogFragment {
             Toast.makeText(getContext(), "Error parsing ABC: " + e.getMessage(), 
                     Toast.LENGTH_LONG).show();
             return false;
+        }
+    }
+    
+    /**
+     * Set initial data for the dialog (used when importing from The Session)
+     */
+    public void setInitialData(String title, String author, String type, String abc) {
+        // Store initial data to be set when dialog is shown
+        Bundle args = new Bundle();
+        args.putString("initial_title", title);
+        args.putString("initial_author", author);
+        args.putString("initial_type", type);
+        args.putString("initial_abc", abc);
+        setArguments(args);
+    }
+    
+    @Override
+    public void onStart() {
+        super.onStart();
+        
+        // Apply initial data if provided
+        Bundle args = getArguments();
+        if (args != null) {
+            String initialTitle = args.getString("initial_title");
+            String initialAuthor = args.getString("initial_author");
+            String initialType = args.getString("initial_type");
+            String initialAbc = args.getString("initial_abc");
+            
+            if (initialTitle != null && !initialTitle.isEmpty()) {
+                titleInput.setText(initialTitle);
+                titleManuallyEdited = true; // Prevent auto-fill from overwriting
+            }
+            
+            if (initialAuthor != null && !initialAuthor.isEmpty()) {
+                authorInput.setText(initialAuthor);
+            }
+            
+            if (initialType != null && !initialType.isEmpty()) {
+                // Find and select the type in spinner
+                ArrayAdapter<String> adapter = (ArrayAdapter<String>) typeSpinner.getAdapter();
+                for (int i = 0; i < adapter.getCount(); i++) {
+                    if (adapter.getItem(i).equalsIgnoreCase(initialType)) {
+                        typeSpinner.setSelection(i);
+                        break;
+                    }
+                }
+            }
+            
+            if (initialAbc != null && !initialAbc.isEmpty()) {
+                abcInput.setText(initialAbc);
+            }
         }
     }
 }

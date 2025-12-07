@@ -9,6 +9,10 @@
         app:iconTint="@color/md_theme_onPrimary"
         app:showAsAction="always" />
     <item
+        android:id="@+id/mainAction_searchSession"
+        android:title="Search The Session"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/mainAction_favorites"
         android:title="Favorites"
         android:icon="@drawable/ic_star_border"

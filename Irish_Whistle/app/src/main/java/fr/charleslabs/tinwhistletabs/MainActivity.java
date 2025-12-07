@@ -24,6 +24,7 @@ import java.util.List;
 import fr.charleslabs.tinwhistletabs.android.SheetsAdapter;
 import fr.charleslabs.tinwhistletabs.dialogs.AddCustomSongDialog;
 import fr.charleslabs.tinwhistletabs.dialogs.AppCreditsDialog;
+import fr.charleslabs.tinwhistletabs.dialogs.SessionSearchDialog;
 import fr.charleslabs.tinwhistletabs.music.CustomSongsManager;
 import fr.charleslabs.tinwhistletabs.music.FavoritesManager;
 import fr.charleslabs.tinwhistletabs.music.MusicDB;
@@ -132,6 +133,8 @@ public class MainActivity extends AppCompatActivity  {
         } else if (itemId == R.id.mainAction_trash) {
             Intent intent = new Intent(this, TrashActivity.class);
             startActivity(intent);
+        } else if (itemId == R.id.mainAction_searchSession) {
+            showSessionSearchDialog();
         } else if (itemId == R.id.mainAction_favorites) {
             toggleFavoritesFilter();
         } else if (itemId == R.id.sort_name_asc) {
@@ -290,5 +293,36 @@ public class MainActivity extends AppCompatActivity  {
         super.onResume();
         // Refresh list when returning to activity
         refreshSongList();
+    }
+    
+    private void showSessionSearchDialog() {
+        SessionSearchDialog dialog = new SessionSearchDialog((tuneName, tuneType, abc) -> {
+            // Open add song dialog with pre-filled ABC
+            showAddSongDialogWithABC(tuneName, tuneType, abc);
+        });
+        dialog.show(getSupportFragmentManager(), "session_search");
+    }
+    
+    private void showAddSongDialogWithABC(String title, String type, String abc) {
+        AddCustomSongDialog dialog = new AddCustomSongDialog(
+            (songTitle, author, songType, songAbc, notes, key) -> {
+                try {
+                    CustomSongsManager manager = new CustomSongsManager(this);
+                    manager.addSong(songTitle, author, songType, songAbc, notes, key);
+                    
+                    // Refresh song list
+                    refreshSongList();
+                    
+                    Toast.makeText(this, "Song added successfully!", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(this, "Error saving song: " + e.getMessage(), 
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        );
+        
+        // Pre-fill with data from The Session
+        dialog.setInitialData(title, "", type, abc);
+        dialog.show(getSupportFragmentManager(), "add_song_dialog");
     }
 }
