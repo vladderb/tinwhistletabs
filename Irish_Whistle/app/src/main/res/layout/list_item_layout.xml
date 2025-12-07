@@ -56,7 +56,7 @@
             android:ellipsize="end"
             tools:text="@string/mainActivity_sheetTitlePlaceholder"
             app:layout_constraintStart_toEndOf="@+id/mainActivity_sheetPictureCard"
-            app:layout_constraintEnd_toStartOf="@+id/mainActivity_btnDelete"
+            app:layout_constraintEnd_toStartOf="@+id/mainActivity_btnFavorite"
             app:layout_constraintTop_toTopOf="@+id/mainActivity_sheetPictureCard" />
 
         <TextView
@@ -70,9 +70,24 @@
             android:ellipsize="end"
             tools:text="@string/mainActivity_sheetDetailsPlaceholder"
             app:layout_constraintStart_toStartOf="@+id/mainActivity_SheetName"
-            app:layout_constraintEnd_toStartOf="@+id/mainActivity_btnDelete"
+            app:layout_constraintEnd_toStartOf="@+id/mainActivity_btnFavorite"
             app:layout_constraintTop_toBottomOf="@+id/mainActivity_SheetName"
             app:layout_constraintBottom_toBottomOf="@+id/mainActivity_sheetPictureCard" />
+
+        <ImageButton
+            android:id="@+id/mainActivity_btnFavorite"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_star_border"
+            android:contentDescription="Favorite"
+            android:scaleType="centerInside"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            app:tint="?attr/colorPrimary"
+            app:layout_constraintEnd_toStartOf="@+id/mainActivity_btnDelete"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <ImageButton
             android:id="@+id/mainActivity_btnDelete"

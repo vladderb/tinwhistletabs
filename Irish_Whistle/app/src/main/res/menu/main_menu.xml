@@ -9,6 +9,13 @@
         app:iconTint="@color/md_theme_onPrimary"
         app:showAsAction="always" />
     <item
+        android:id="@+id/mainAction_favorites"
+        android:title="Favorites"
+        android:icon="@drawable/ic_star_border"
+        android:iconTint="@color/md_theme_onPrimary"
+        app:iconTint="@color/md_theme_onPrimary"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/mainAction_trash"
         android:title="Trash"
         android:icon="@drawable/ic_trash"
@@ -16,9 +23,27 @@
         app:iconTint="@color/md_theme_onPrimary"
         app:showAsAction="always" />
     <item
-        android:id="@+id/mainAction_deleteAll"
-        android:title="Delete All Custom Songs"
-        app:showAsAction="never" />
+        android:id="@+id/mainAction_sort"
+        android:title="Sort"
+        android:icon="@drawable/ic_sort"
+        android:iconTint="@color/md_theme_onPrimary"
+        app:iconTint="@color/md_theme_onPrimary"
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:id="@+id/sort_name_asc"
+                android:title="Name (A-Z)" />
+            <item
+                android:id="@+id/sort_name_desc"
+                android:title="Name (Z-A)" />
+            <item
+                android:id="@+id/sort_favorites"
+                android:title="Favorites First" />
+            <item
+                android:id="@+id/sort_type"
+                android:title="By Type" />
+        </menu>
+    </item>
     <item
         android:id="@+id/mainAction_about"
         android:title="@string/menu_about"

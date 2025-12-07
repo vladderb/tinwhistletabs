@@ -20,6 +20,7 @@ import java.util.List;
 
 import fr.charleslabs.tinwhistletabs.R;
 import fr.charleslabs.tinwhistletabs.music.CustomSongsManager;
+import fr.charleslabs.tinwhistletabs.music.FavoritesManager;
 import fr.charleslabs.tinwhistletabs.music.MusicSheet;
 import fr.charleslabs.tinwhistletabs.music.TrashManager;
 
@@ -28,12 +29,21 @@ public class SheetsAdapter extends BaseAdapter implements Filterable{
     private List<MusicSheet> sheetsFiltered;
     private final Context context;
     private final View noResult;
+    private final FavoritesManager favoritesManager;
+    private final RefreshCallback refreshCallback;
+    
+    public interface RefreshCallback {
+        void onRefresh();
+    }
 
-    public SheetsAdapter(Context context,List<MusicSheet> sheets, View noResult) {
+    public SheetsAdapter(Context context, List<MusicSheet> sheets, View noResult, 
+                        FavoritesManager favoritesManager, RefreshCallback refreshCallback) {
         this.sheets = sheets;
         this.sheetsFiltered = sheets;
         this.context = context;
         this.noResult = noResult;
+        this.favoritesManager = favoritesManager;
+        this.refreshCallback = refreshCallback;
     }
 
     @Override
@@ -64,6 +74,7 @@ public class SheetsAdapter extends BaseAdapter implements Filterable{
             viewHolder.sheetName = convertView.findViewById(R.id.mainActivity_SheetName);
             viewHolder.sheetDetails = convertView.findViewById(R.id.mainActivity_SheetDetails);
             viewHolder.sheetImage = convertView.findViewById(R.id.mainActivity_sheetPicture);
+            viewHolder.btnFavorite = convertView.findViewById(R.id.mainActivity_btnFavorite);
             viewHolder.btnDelete = convertView.findViewById(R.id.mainActivity_btnDelete);
             convertView.setTag(viewHolder);
         }
@@ -109,29 +120,54 @@ public class SheetsAdapter extends BaseAdapter implements Filterable{
                 break;
         }
 
-        // Handle delete button - only show for custom songs
-        if (sheet.getFile().startsWith("custom_")) {
-            viewHolder.btnDelete.setVisibility(View.VISIBLE);
-            viewHolder.btnDelete.setFocusable(true);
-            viewHolder.btnDelete.setClickable(true);
-            viewHolder.btnDelete.setOnClickListener(v -> {
+        // Handle favorite button
+        boolean isFavorite = favoritesManager.isFavorite(sheet.getFile());
+        viewHolder.btnFavorite.setImageResource(isFavorite ? R.drawable.ic_star : R.drawable.ic_star_border);
+        viewHolder.btnFavorite.setOnClickListener(v -> {
+            boolean newFavoriteState = favoritesManager.toggleFavorite(sheet.getFile());
+            ((ImageButton)v).setImageResource(newFavoriteState ? R.drawable.ic_star : R.drawable.ic_star_border);
+            
+            String message = newFavoriteState ? "Added to favorites" : "Removed from favorites";
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        });
+
+        // Handle delete button
+        viewHolder.btnDelete.setVisibility(View.VISIBLE);
+        viewHolder.btnDelete.setFocusable(true);
+        viewHolder.btnDelete.setClickable(true);
+        
+        final boolean isCustomSong = sheet.getFile().startsWith("custom_");
+        viewHolder.btnDelete.setOnClickListener(v -> {
+            if (isCustomSong) {
+                // Custom song - move to trash
                 new AlertDialog.Builder(context)
-                        .setTitle("Переместить в корзину?")
-                        .setMessage("Трек \"" + sheet.getTitle() + "\" будет перемещен в корзину. Вы сможете восстановить его в течение 30 дней.")
-                        .setPositiveButton("В корзину", (dialog, which) -> {
+                        .setTitle("Move to Trash?")
+                        .setMessage("Song \"" + sheet.getTitle() + "\" will be moved to trash. You can restore it within 30 days.")
+                        .setPositiveButton("Move to Trash", (dialog, which) -> {
                             TrashManager.moveToTrash(context, sheet.getFile(), sheet.getTitle());
-                            sheetsFiltered.remove(position);
-                            sheets.remove(sheet);
-                            notifyDataSetChanged();
-                            Toast.makeText(context, "Перемещено в корзину", Toast.LENGTH_SHORT).show();
+                            if (refreshCallback != null) {
+                                refreshCallback.onRefresh();
+                            }
+                            Toast.makeText(context, "Moved to trash", Toast.LENGTH_SHORT).show();
                         })
-                        .setNegativeButton("Отмена", null)
+                        .setNegativeButton("Cancel", null)
                         .show();
-            });
-        } else {
-            viewHolder.btnDelete.setVisibility(View.GONE);
-            viewHolder.btnDelete.setOnClickListener(null);
-        }
+            } else {
+                // Built-in song - move to trash
+                new AlertDialog.Builder(context)
+                        .setTitle("Move to Trash?")
+                        .setMessage("Song \"" + sheet.getTitle() + "\" will be moved to trash. You can restore it within 30 days.")
+                        .setPositiveButton("Move to Trash", (dialog, which) -> {
+                            TrashManager.moveToTrash(context, sheet.getFile(), sheet.getTitle());
+                            if (refreshCallback != null) {
+                                refreshCallback.onRefresh();
+                            }
+                            Toast.makeText(context, "Moved to trash", Toast.LENGTH_SHORT).show();
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            }
+        });
 
         //Return the view
         return convertView;
@@ -178,6 +214,7 @@ public class SheetsAdapter extends BaseAdapter implements Filterable{
         TextView sheetName;
         TextView sheetDetails;
         ImageView sheetImage;
+        ImageButton btnFavorite;
         ImageButton btnDelete;
     }
 }

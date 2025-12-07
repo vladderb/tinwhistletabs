@@ -11,8 +11,10 @@
     <item
         android:id="@+id/tabAction_delete"
         android:title="Delete Song"
-        android:visible="false"
-        app:showAsAction="never" />
+        android:icon="@drawable/ic_trash"
+        android:iconTint="@color/md_theme_primary"
+        app:iconTint="@color/md_theme_primary"
+        app:showAsAction="always" />
     <item
         android:id="@+id/tabAction_more"
         android:title="@string/TabActivity_more"

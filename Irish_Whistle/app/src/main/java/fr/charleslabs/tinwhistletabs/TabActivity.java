@@ -37,6 +37,7 @@ import fr.charleslabs.tinwhistletabs.dialogs.KeyDialog;
 import fr.charleslabs.tinwhistletabs.dialogs.SheetInfoDialog;
 import fr.charleslabs.tinwhistletabs.dialogs.TempoDialog;
 import fr.charleslabs.tinwhistletabs.music.CustomSongsManager;
+import fr.charleslabs.tinwhistletabs.music.Metronome;
 import fr.charleslabs.tinwhistletabs.music.MusicDB;
 import fr.charleslabs.tinwhistletabs.music.TrashManager;
 import fr.charleslabs.tinwhistletabs.music.MusicNote;
@@ -77,6 +78,11 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
     private int currentNoteIndex = 0;  // Index of current note in notes array
     private int startCursorPos = 0;  // Start position for highlighting
     private int startNoteIndex = 0;  // Start note index
+    
+    // Metronome
+    private Metronome metronome = null;
+    private boolean isMetronomeEnabled = false;
+    private com.google.android.material.floatingactionbutton.FloatingActionButton metronomeBtn;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -177,6 +183,15 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
             }
         });
         
+        // Metronome button
+        metronome = new Metronome();
+        metronomeBtn = findViewById(R.id.TabActivity_btnMetronome);
+        metronomeBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                toggleMetronome();
+            }
+        });
+        
         // ABC button with text
         com.google.android.material.floatingactionbutton.FloatingActionButton abcBtn = 
                 findViewById(R.id.TabActivity_btnABC);
@@ -194,6 +209,17 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
                 toggleSheetMusic();
             }
         });
+        
+        // Apply current key transposition if not default
+        if (!MusicSettings.currentKey.equals(MusicSettings.DEFAULT_KEY)) {
+            sheet.transposeKey(notes, MusicSettings.DEFAULT_KEY, MusicSettings.currentKey);
+            
+            // Update tab display with transposed notes
+            tabText = sheet.notesToTabsWithLineBreaks(notes);
+            tab.setText(tabText, TextView.BufferType.SPANNABLE);
+            span = (Spannable)tab.getText();
+        }
+        
         this.setTune();
 
         // Scale gesture
@@ -225,8 +251,9 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
 
     private void setTune(){
         try {
-            // For all tracks use multiplier 1.0 - notes already have correct duration
-            MusicPlayer.getInstance().setAudioTrack(MusicPlayer.genMusic(notes, 1.0f));
+            // Calculate tempo modifier: higher tempo = faster playback
+            float tempoModifier = (float) tempo / MusicSettings.DEFAULT_TEMPO;
+            MusicPlayer.getInstance().setAudioTrack(MusicPlayer.genMusic(notes, tempoModifier));
             findViewById(R.id.TabActivity_btnPlayPause).setEnabled(true);
             findViewById(R.id.TabActivity_btnStop).setEnabled(true);
         }catch (Exception e){
@@ -254,6 +281,11 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
             countdownOverlay.setVisibility(View.GONE);
             isPlaying = false;
             playPauseBtn.setImageDrawable(ContextCompat.getDrawable(this, android.R.drawable.ic_media_play));
+            
+            // Stop metronome on pause
+            if (metronome != null && metronome.isPlaying()) {
+                metronome.stop();
+            }
             
             // Disable auto-scroll in WebView
             if (sheetMusicView != null && isSheetMusicVisible) {
@@ -287,6 +319,11 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
         moveCursor(musicHandler, currentNoteIndex);
         MusicPlayer.getInstance().play();
         
+        // Start metronome if enabled
+        if (isMetronomeEnabled && metronome != null) {
+            metronome.start(tempo);
+        }
+        
         // Enable auto-scroll in WebView
         if (sheetMusicView != null && isSheetMusicVisible) {
             sheetMusicView.evaluateJavascript("if(typeof setPlayingMode === 'function') setPlayingMode(true);", null);
@@ -305,6 +342,11 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
         MusicPlayer.getInstance().stop();
         isPlaying = false;
         
+        // Stop metronome when music stops
+        if (metronome != null && metronome.isPlaying()) {
+            metronome.stop();
+        }
+        
         // Reset highlighting in WebView and disable auto-scroll
         if (sheetMusicView != null && isSheetMusicVisible) {
             sheetMusicView.evaluateJavascript("if(typeof clearHighlight === 'function') clearHighlight();", null);
@@ -315,6 +357,42 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
         com.google.android.material.floatingactionbutton.FloatingActionButton playPauseBtn = 
                 findViewById(R.id.TabActivity_btnPlayPause);
         playPauseBtn.setImageDrawable(ContextCompat.getDrawable(this, android.R.drawable.ic_media_play));
+    }
+    
+    private void toggleMetronome() {
+        isMetronomeEnabled = !isMetronomeEnabled;
+        
+        if (isMetronomeEnabled) {
+            // Enable metronome
+            metronomeBtn.setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                            ContextCompat.getColor(this, R.color.md_theme_primary)));
+            metronomeBtn.setImageTintList(
+                    android.content.res.ColorStateList.valueOf(
+                            ContextCompat.getColor(this, android.R.color.white)));
+            
+            // Start metronome if music is playing
+            if (isPlaying && metronome != null) {
+                metronome.start(tempo);
+            }
+            
+            Toast.makeText(this, "Metronome enabled", Toast.LENGTH_SHORT).show();
+        } else {
+            // Disable metronome
+            metronomeBtn.setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                            ContextCompat.getColor(this, R.color.md_theme_secondaryContainer)));
+            metronomeBtn.setImageTintList(
+                    android.content.res.ColorStateList.valueOf(
+                            ContextCompat.getColor(this, R.color.md_theme_primary)));
+            
+            // Stop metronome
+            if (metronome != null) {
+                metronome.stop();
+            }
+            
+            Toast.makeText(this, "Metronome disabled", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void moveCursor(final Handler handler, final int index){
@@ -389,13 +467,6 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
     public boolean onCreateOptionsMenu(Menu menu) {
         final MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.tab_menu, menu);
-        
-        // Show delete button for all tracks
-        MenuItem deleteItem = menu.findItem(R.id.tabAction_delete);
-        if (deleteItem != null) {
-            deleteItem.setVisible(true);
-        }
-        
         return true;
     }
 
@@ -406,6 +477,12 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
             this.stop();
             tempo = newTempo;
             this.setTune();
+            
+            // Update metronome tempo if it's running
+            if (isMetronomeEnabled && metronome != null && metronome.isPlaying()) {
+                metronome.stop();
+                metronome.start(tempo);
+            }
         }
         MusicSettings.isStartDelayed = isDelayApplied;
     }
@@ -418,8 +495,15 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
             this.setTune();
         }
     }
-
-
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Stop metronome when activity is destroyed
+        if (metronome != null) {
+            metronome.stop();
+        }
+    }
 
     // Scale tab on pinch
     @Override
@@ -523,17 +607,10 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
     }
     
     private void showDeleteConfirmation() {
-        String message;
-        if (sheet.getFile().startsWith("builtin_")) {
-            message = "Are you sure you want to hide \"" + sheet.getTitle() + "\"? You can restore it from the trash.";
-        } else {
-            message = "Are you sure you want to delete \"" + sheet.getTitle() + "\"?";
-        }
-        
         new AlertDialog.Builder(this)
-                .setTitle("Delete Song")
-                .setMessage(message)
-                .setPositiveButton("Delete", (dialog, which) -> {
+                .setTitle("Move to Trash?")
+                .setMessage("Song \"" + sheet.getTitle() + "\" will be moved to trash. You can restore it within 30 days.")
+                .setPositiveButton("Move to Trash", (dialog, which) -> {
                     deleteSong();
                 })
                 .setNegativeButton("Cancel", null)
@@ -542,20 +619,12 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
     
     private void deleteSong() {
         try {
-            if (sheet.getFile().startsWith("custom_")) {
-                // Custom track - delete physically
-                CustomSongsManager manager = new CustomSongsManager(this);
-                manager.deleteSong(sheet.getFile());
-                Toast.makeText(this, "Song deleted successfully", Toast.LENGTH_SHORT).show();
-            } else if (sheet.getFile().startsWith("builtin_")) {
-                // Built-in track - move to trash
-                TrashManager.moveToTrash(this, sheet.getFile(), sheet.getTitle());
-                Toast.makeText(this, "Song moved to trash", Toast.LENGTH_SHORT).show();
-            }
-            
+            // Move to trash (works for both custom and built-in songs)
+            TrashManager.moveToTrash(this, sheet.getFile(), sheet.getTitle());
+            Toast.makeText(this, "Moved to trash", Toast.LENGTH_SHORT).show();
             finish();
         } catch (Exception e) {
-            Toast.makeText(this, "Error deleting song: " + e.getMessage(), 
+            Toast.makeText(this, "Error moving song to trash: " + e.getMessage(), 
                     Toast.LENGTH_LONG).show();
         }
     }

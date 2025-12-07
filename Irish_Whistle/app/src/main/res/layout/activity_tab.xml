@@ -107,6 +107,19 @@
             app:tint="?attr/colorPrimary" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/TabActivity_btnMetronome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="Metronome"
+            android:src="@drawable/ic_metronome"
+            app:backgroundTint="?attr/colorSecondaryContainer"
+            app:elevation="0dp"
+            app:fabSize="normal"
+            app:maxImageSize="24dp"
+            app:tint="?attr/colorPrimary" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/TabActivity_btnABC"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
