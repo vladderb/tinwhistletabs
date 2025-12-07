@@ -315,7 +315,11 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
         // Remember start positions
         startCursorPos = cursorPos;
         startNoteIndex = currentNoteIndex;
-        MusicPlayer.getInstance().move(MusicSheet.noteIndexToTime(notes, currentNoteIndex, 1.0f));
+        
+        // Calculate tempo modifier to match audio playback
+        float tempoModifier = (float) tempo / MusicSettings.DEFAULT_TEMPO;
+        
+        MusicPlayer.getInstance().move(MusicSheet.noteIndexToTime(notes, currentNoteIndex, tempoModifier));
         moveCursor(musicHandler, currentNoteIndex);
         MusicPlayer.getInstance().play();
         
@@ -403,9 +407,13 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
         }
 
         MusicNote note = notes.get(index);
+        
+        // Calculate tempo modifier to match audio playback
+        float tempoModifier = (float) tempo / MusicSettings.DEFAULT_TEMPO;
+        
         android.util.Log.v("TabActivity", "moveCursor: index=" + index + ", cursorPos=" + cursorPos + 
                 ", isRest=" + note.isRest() + ", pitch=" + note.getPitch() + 
-                ", duration=" + note.getLengthInMS(1.0f) + "ms");
+                ", duration=" + note.getLengthInMS(tempoModifier) + "ms, tempo=" + tempo);
 
         // Highlight note in sheet music view
         highlightNoteInSheet(index);
@@ -428,7 +436,7 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
             }
         }
         
-        // Wait for next note
+        // Wait for next note with correct tempo
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -439,7 +447,7 @@ public class TabActivity extends AppCompatActivity implements TempoDialog.TempoC
                     stop();
                 }
             }
-        }, (long)(note.getLengthInMS(1.0f)));
+        }, (long)(note.getLengthInMS(tempoModifier)));
     }
 
     private void drawCursor(final boolean scroll){

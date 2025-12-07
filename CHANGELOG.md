@@ -83,6 +83,12 @@
   - Audio playback uses correctly transposed notes
   - Tablature display matches audio transposition
 
+- **Visual highlighting synchronization**: Fixed desync between audio and visual highlighting
+  - Cursor movement now uses correct tempo modifier
+  - Note highlighting in tabs synchronized with audio playback
+  - Sheet music highlighting synchronized with audio playback
+  - Works correctly at any tempo setting
+
 ### Changed
 - **TabActivity**: Moved escape() method from deleted SheetActivity
   - escape() method now part of TabActivity for JavaScript string escaping
@@ -218,6 +224,12 @@
   - Текущая настройка тональности теперь применяется при открытии мелодии
   - Воспроизведение аудио использует правильно транспонированные ноты
   - Отображение табулатуры соответствует транспозиции аудио
+
+- **Синхронизация визуальной подсветки**: Исправлена рассинхронизация между аудио и визуальной подсветкой
+  - Движение курсора теперь использует правильный модификатор темпа
+  - Подсветка нот в табах синхронизирована с воспроизведением аудио
+  - Подсветка нот на нотном стане синхронизирована с воспроизведением аудио
+  - Работает корректно при любой настройке темпа
 
 ### Изменено
 - **TabActivity**: Перенесен метод escape() из удаленного SheetActivity
