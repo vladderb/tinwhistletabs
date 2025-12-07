@@ -1,6 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Material Design 3 Colors -->
     <color name="colorPrimary">#169B62</color>
     <color name="colorPrimaryDark">#00602D</color>
     <color name="colorAccent">#FF883E</color>
+    
+    <!-- Additional Material Colors -->
+    <color name="md_theme_primary">#169B62</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_primaryContainer">#A7F0C9</color>
+    <color name="md_theme_onPrimaryContainer">#00210F</color>
+    
+    <color name="md_theme_secondary">#FF883E</color>
+    <color name="md_theme_onSecondary">#FFFFFF</color>
+    <color name="md_theme_secondaryContainer">#E8F5E9</color>
+    <color name="md_theme_onSecondaryContainer">#1B5E20</color>
+    
+    <color name="md_theme_surface">#FDFCF9</color>
+    <color name="md_theme_onSurface">#1B1C19</color>
+    <color name="md_theme_surfaceVariant">#DDE5DA</color>
+    <color name="md_theme_onSurfaceVariant">#414941</color>
+    
+    <color name="md_theme_background">#FDFCF9</color>
+    <color name="md_theme_onBackground">#1B1C19</color>
+    
+    <color name="md_theme_outline">#717970</color>
+    <color name="md_theme_outlineVariant">#C1C9BE</color>
 </resources>

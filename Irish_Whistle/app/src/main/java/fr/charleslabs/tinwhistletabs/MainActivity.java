@@ -13,18 +13,25 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.charleslabs.tinwhistletabs.android.SheetsAdapter;
+import fr.charleslabs.tinwhistletabs.dialogs.AddCustomSongDialog;
 import fr.charleslabs.tinwhistletabs.dialogs.AppCreditsDialog;
+import fr.charleslabs.tinwhistletabs.music.CustomSongsManager;
 import fr.charleslabs.tinwhistletabs.music.MusicDB;
+import fr.charleslabs.tinwhistletabs.music.MusicNote;
 import fr.charleslabs.tinwhistletabs.music.MusicSheet;
+import fr.charleslabs.tinwhistletabs.music.TrashManager;
 
 public class MainActivity extends AppCompatActivity  {
     public static final String EXTRA_SHEET= "fr.charleslabs.tinwhistletabs.SHEET";
     private SheetsAdapter adapter;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +39,10 @@ public class MainActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_main);
 
         // Set up ListView
-        final ListView listView = findViewById(R.id.sheetsList) ;
+        listView = findViewById(R.id.sheetsList);
 
-        // Get result list
-        List<MusicSheet> listData = MusicDB.getInstance(this).musicDB;
+        // Get result list (built-in + custom songs)
+        List<MusicSheet> listData = getAllSongs();
         adapter = new SheetsAdapter(this, listData, findViewById(R.id.noResultsFoundView));
         listView.setAdapter(adapter);
 
@@ -72,7 +79,15 @@ public class MainActivity extends AppCompatActivity  {
         final MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
 
-        //final MenuItem aboutItem = menu.findItem(R.id.mainAction_about);
+        // Set green color for icons
+        int greenColor = ContextCompat.getColor(this, R.color.md_theme_primary);
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem item = menu.getItem(i);
+            if (item.getIcon() != null) {
+                item.getIcon().setTint(greenColor);
+            }
+        }
+
         final MenuItem searchItem = menu.findItem(R.id.mainAction_search);
         final SearchView searchView = (SearchView) searchItem.getActionView();
 
@@ -88,19 +103,6 @@ public class MainActivity extends AppCompatActivity  {
             }
         });
 
-        /*searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
-                aboutItem.setVisible(false);
-                return true;
-            }
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
-                aboutItem.setVisible(true);
-                return true;
-            }
-        });*/
-
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -109,8 +111,95 @@ public class MainActivity extends AppCompatActivity  {
         if (item.getItemId() == R.id.mainAction_about) {
             DialogFragment dialogFragment = new AppCreditsDialog();
             dialogFragment.show(getSupportFragmentManager(),"dialog");
+        } else if (item.getItemId() == R.id.mainAction_addSong) {
+            showAddSongDialog();
+        } else if (item.getItemId() == R.id.mainAction_trash) {
+            Intent intent = new Intent(this, TrashActivity.class);
+            startActivity(intent);
+        } else if (item.getItemId() == R.id.mainAction_deleteAll) {
+            showDeleteAllConfirmation();
         }
 
         return true;
+    }
+    
+    private void showAddSongDialog() {
+        AddCustomSongDialog dialog = new AddCustomSongDialog(
+            (title, author, type, abc, notes, key) -> {
+                try {
+                    CustomSongsManager manager = new CustomSongsManager(this);
+                    manager.addSong(title, author, type, abc, notes, key);
+                    
+                    // Refresh song list
+                    refreshSongList();
+                    
+                    Toast.makeText(this, "Song added successfully!", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(this, "Error saving song: " + e.getMessage(), 
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        );
+        dialog.show(getSupportFragmentManager(), "add_song_dialog");
+    }
+    
+    private List<MusicSheet> getAllSongs() {
+        List<MusicSheet> allSongs = new ArrayList<>();
+        
+        // Add built-in tunes
+        allSongs.addAll(MusicDB.getInstance(this).musicDB);
+        
+        // Add custom songs (except those in trash)
+        CustomSongsManager manager = new CustomSongsManager(this);
+        List<MusicSheet> customSongs = manager.getCustomSongs();
+        for (MusicSheet song : customSongs) {
+            if (!TrashManager.isInTrash(this, song.getFile())) {
+                allSongs.add(song);
+            }
+        }
+        
+        return allSongs;
+    }
+    
+    private void refreshSongList() {
+        List<MusicSheet> listData = getAllSongs();
+        adapter = new SheetsAdapter(this, listData, findViewById(R.id.noResultsFoundView));
+        listView.setAdapter(adapter);
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh list when returning to activity
+        refreshSongList();
+    }
+    
+    private void showDeleteAllConfirmation() {
+        CustomSongsManager manager = new CustomSongsManager(this);
+        List<MusicSheet> customSongs = manager.getCustomSongs();
+        
+        if (customSongs.isEmpty()) {
+            Toast.makeText(this, "No custom songs to delete", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Delete All Custom Songs")
+                .setMessage("Are you sure you want to delete all " + customSongs.size() + " custom songs? This action cannot be undone.")
+                .setPositiveButton("Delete All", (dialog, which) -> {
+                    deleteAllCustomSongs();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+    
+    private void deleteAllCustomSongs() {
+        CustomSongsManager manager = new CustomSongsManager(this);
+        int deletedCount = manager.deleteAllCustomSongs();
+        
+        // Refresh list
+        refreshSongList();
+        
+        Toast.makeText(this, "Deleted " + deletedCount + " custom songs", Toast.LENGTH_SHORT).show();
     }
 }

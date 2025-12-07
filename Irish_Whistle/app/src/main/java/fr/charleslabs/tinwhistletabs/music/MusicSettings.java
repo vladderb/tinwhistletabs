@@ -7,9 +7,9 @@ package fr.charleslabs.tinwhistletabs.music;
 public final class MusicSettings {
     private MusicSettings(){}
 
-    // TEMPO
+    // TEMPO (в BPM - ударов в минуту)
     final public static int DEFAULT_TEMPO = 100;
-    final public static int MIN_TEMPO = 30, MAX_TEMPO = 300;
+    final public static int MIN_TEMPO = 40, MAX_TEMPO = 240;
 
     // KEYS
     final public static String DEFAULT_KEY = "High D";
